@@ -394,10 +394,15 @@ async function findBinaryInDir(dir, repoName) {
 					/^(readme|license|changelog|contributing)/i.test(file);
 
 				if (!isLikelyNonBinary && !isCommonNonBinary) {
-					// If the file name matches the repo name, it's likely the binary we want.
+					// If the file name matches the repo name (with or without .exe), it's likely the binary we want.
+					const fileBaseName = file.toLowerCase().replace(/\.exe$/i, "");
+					const repoNameLower = repoName.toLowerCase();
+					
 					if (
-						file.toLowerCase().includes(repoName.toLowerCase()) ||
-						!file.includes(".")
+						fileBaseName === repoNameLower || 
+						fileBaseName.includes(repoNameLower) ||
+						(file.endsWith(".exe") && fileBaseName.includes(repoNameLower)) ||
+						(!file.includes(".") && file !== "LICENSE" && file !== "COPYING")
 					) {
 						binaryPath = filePath;
 						break;
@@ -427,12 +432,24 @@ async function findBinaryInDir(dir, repoName) {
 				if (stats.isDirectory()) {
 					const result = await finalSearch(filePath);
 					if (result) return result;
-				} else if (!file.includes(".") || file.endsWith(".exe")) {
-					return filePath;
+				} else if (
+					(!file.includes(".") || file.endsWith(".exe")) && 
+					!/^(license|copying|readme|changelog|contributing)$/i.test(file)
+				) {
+					// Prioritize files that match the repo name with .exe extension
+					if (file.toLowerCase().replace(/\.exe$/i, "") === repoName.toLowerCase() ||
+						file.toLowerCase().includes(repoName.toLowerCase())) {
+						return filePath;
+					}
+					
+					// Keep track of this file as a potential match
+					if (!binaryPath) {
+						binaryPath = filePath;
+					}
 				}
 			}
 
-			return null;
+			return binaryPath;
 		}
 
 		binaryPath = await finalSearch(dir);
