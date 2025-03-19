@@ -1,0 +1,29 @@
+{
+	"name": "binrun",
+	"version": "0.1.0",
+	"description": "Run arch-specific binaries released via GoReleaser",
+	"main": "index.js",
+	"bin": {
+		"binrun": "./bin.js"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"lint": "biome lint .",
+		"lint:fix": "biome lint --write .",
+		"format": "biome format --write .",
+		"check": "biome check --write ."
+	},
+	"keywords": ["goreleaser", "binary", "github", "release", "runner"],
+	"author": "David Stotijn <david@stotijn.com>",
+	"license": "Apache-2.0",
+	"dependencies": {
+		"adm-zip": "^0.5.16",
+		"tar": "^6.2.0"
+	},
+	"engines": {
+		"node": ">=14.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4"
+	}
+}
