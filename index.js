@@ -247,10 +247,11 @@ function findMatchingAsset(assets, systemInfo, repo) {
  * @param {string} url - Download URL
  * @param {string} destPath - Destination path
  * @param {number} [redirectLimit=5] - Maximum number of redirects to follow
+ * @param {Function} [logFn] - Logging function
  * @returns {Promise<void>}
  */
-async function downloadFile(url, destPath, redirectLimit = 5) {
-	// We need to get the global log function from the outer scope for logging.
+async function downloadFile(url, destPath, redirectLimit = 5, logFn = () => {}) {
+	// Use the provided logFn instead of trying to access log from outer scope
 	return new Promise((resolve, reject) => {
 		const options = {
 			headers: { "User-Agent": "binrun" },
@@ -267,8 +268,8 @@ async function downloadFile(url, destPath, redirectLimit = 5) {
 					return reject(new Error("Too many redirects"));
 				}
 
-				log(`Following redirect to ${res.headers.location}`);
-				return downloadFile(res.headers.location, destPath, redirectLimit - 1)
+				logFn(`Following redirect to ${res.headers.location}`);
+				return downloadFile(res.headers.location, destPath, redirectLimit - 1, logFn)
 					.then(resolve)
 					.catch(reject);
 			}
@@ -510,7 +511,7 @@ async function run(repoInput, options = {}) {
 
 		if (needToDownload) {
 			log(`Downloading ${asset.browser_download_url}...`);
-			await downloadFile(asset.browser_download_url, binaryPath);
+			await downloadFile(asset.browser_download_url, binaryPath, 5, log);
 		}
 
 		// Process the file.
